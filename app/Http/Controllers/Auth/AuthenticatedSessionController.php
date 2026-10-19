@@ -13,11 +13,19 @@ use Inertia\Response;
 
 class AuthenticatedSessionController extends Controller
 {
+    
     /**
      * Display the login view.
      */
     public function create(): Response
     {
+        if (tenant()) {
+            return Inertia::render('Tenant/Auth/Login', [
+                'canResetPassword' => \Illuminate\Support\Facades\Route::has('password.request'),
+                'status' => session('status'),
+                'tenantName' => tenant('company_name') ?? tenant('id'),
+            ]);
+        }
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),

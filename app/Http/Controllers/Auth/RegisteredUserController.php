@@ -21,6 +21,11 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
+        if (tenant()) {
+            return \Inertia\Inertia::render('Tenant/Auth/Register', [
+                'tenantName' => tenant('company_name') ?? tenant('id'),
+            ]);
+        }
         return Inertia::render('Auth/Register');
     }
 
