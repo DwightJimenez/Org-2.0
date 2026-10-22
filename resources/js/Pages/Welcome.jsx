@@ -21,16 +21,14 @@ export default function Welcome() {
                     in seconds.
                 </p>
 
-                {/* Call to Action */}
                 <Link
-                    href="/register-organization"
+                    href="/dashboard"
                     className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-slate-900 bg-cyan-400 hover:bg-cyan-300 rounded-xl shadow-[0_0_20px_rgba(34,211,238,0.4)] hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] transition-all duration-300 transform hover:-translate-y-1"
                 >
                     Initialize Workspace &rarr;
                 </Link>
             </main>
 
-            {/* Futuristic Background Elements */}
             <div className="absolute top-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
                 <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-indigo-500/10 blur-[120px] rounded-full"></div>
                 <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-cyan-500/10 blur-[120px] rounded-full"></div>

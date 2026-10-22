@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Tenant;
 
-class WorkspaceController extends Controller
+class TenantController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -48,22 +48,47 @@ class WorkspaceController extends Controller
             'company_name' => $validated['company_name'],
             'user_id' => $request->user()->id,
         ]);
-        
+
         $tenant->domains()->create(['domain' => $domainName]);
 
         $tenant->run(function () use ($request) {
-            \Illuminate\Support\Facades\DB::table('users')->insert([
+            $permissions = [
+                'manage_roles',
+                'edit_portal_layout',
+                'upload_knowledge_documents',
+                'view_knowledge_documents'
+            ];
+
+            foreach ($permissions as $permission) {
+                \Spatie\Permission\Models\Permission::firstOrCreate(['name' => $permission]);
+            }
+
+            $adminRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Admin']);
+            $managerRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Manager']);
+            $memberRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Member']);
+
+            $adminRole->syncPermissions($permissions);
+
+            $managerRole->syncPermissions([
+                'upload_knowledge_documents',
+                'view_knowledge_documents'
+            ]);
+
+            $memberRole->syncPermissions([
+                'view_knowledge_documents'
+            ]);
+
+            $tenantUser = \App\Models\User::create([
                 'name' => $request->user()->name,
                 'email' => $request->user()->email,
-                'password' => $request->user()->password, 
-                'created_at' => now(),
-                'updated_at' => now(),
+                'password' => $request->user()->password,
             ]);
+            $tenantUser->assignRole($adminRole);
         });
 
         return Inertia::location('http://' . $domainName . ':8000/login');
     }
-    
+
 
     /**
      * Display the specified resource.

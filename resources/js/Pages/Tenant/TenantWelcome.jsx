@@ -14,7 +14,7 @@ export default function TenantWelcome({ tenantName, canLogin, canRegister }) {
                 <div className="flex items-center gap-6">
                     {canLogin && (
                         <Link
-                            href="/login"
+                            href={route("tenant.login")}
                             className="text-sm font-semibold text-slate-300 hover:text-white transition-colors"
                         >
                             Employee Login
@@ -22,7 +22,7 @@ export default function TenantWelcome({ tenantName, canLogin, canRegister }) {
                     )}
                     {canRegister && (
                         <Link
-                            href="/register"
+                            href={route("tenant.register")}
                             className="text-sm font-bold bg-cyan-500 hover:bg-cyan-400 text-slate-900 px-5 py-2.5 rounded-xl shadow-[0_0_15px_rgba(34,211,238,0.3)] transition-all transform hover:-translate-y-0.5"
                         >
                             Join Workspace
@@ -48,7 +48,7 @@ export default function TenantWelcome({ tenantName, canLogin, canRegister }) {
 
                 <div className="flex gap-4">
                     <Link
-                        href={route("login")}
+                        href="dashboard"
                         className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 px-8 py-3 rounded-xl font-semibold transition-all"
                     >
                         Access Portal

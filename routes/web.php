@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\WorkspaceController;
+use App\Http\Controllers\TenantController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -21,11 +21,10 @@ foreach (config('tenancy.central_domains') as $domain) {
         });
 
         Route::middleware('auth')->group(function () {
-            Route::get('/dashboard', [WorkspaceController::class, 'index'])->name('dashboard');
+            Route::get('/dashboard', [TenantController::class, 'index'])->name('dashboard');
 
-            Route::get('/register-organization', [WorkspaceController::class, 'create'])->name('register-organization');
-            Route::post('/register-organization', [WorkspaceController::class, 'store']);
-
+            Route::get('/register-organization', [TenantController::class, 'create'])->name('register-organization');
+            Route::post('/register-organization', [TenantController::class, 'store']);
 
             Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
             Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -34,5 +33,3 @@ foreach (config('tenancy.central_domains') as $domain) {
         require __DIR__ . '/auth.php';
     });
 }
-
-

@@ -1,140 +1,210 @@
-import React, { useState } from "react";
-import { Head, Link } from "@inertiajs/react";
+import React, { useRef, useState } from "react";
+import { Head, Link, useForm } from "@inertiajs/react";
+import TenantLayout from "@/Layouts/TenantLayout";
 
 export default function TenantDashboard({ tenantId, auth }) {
-    // State to toggle the profile dropdown
-    const [showingDropdown, setShowingDropdown] = useState(false);
+    const fileInputRef = useRef(null);
+    const [dragActive, setDragActive] = useState(false);
+
+    // Form handler using Inertia
+    const { data, setData, post, processing, progress, errors, reset, wasSuccessful } = useForm({
+        document: null,
+    });
+
+    const handleFileSelect = (file) => {
+        if (!file) return;
+        setData("document", file);
+    };
+
+    const handleDrag = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === "dragenter" || e.type === "dragover") {
+            setDragActive(true);
+        } else if (e.type === "dragleave") {
+            setDragActive(false);
+        }
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleFileSelect(e.dataTransfer.files[0]);
+        }
+    };
+
+    const submitDocument = (e) => {
+        e.preventDefault();
+        if (!data.document) return;
+
+        post(route("document.ingest"), {
+            onSuccess: () => {
+                reset();
+                if (fileInputRef.current) fileInputRef.current.value = "";
+            },
+        });
+    };
 
     return (
-        <div className="min-h-screen bg-slate-900 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white">
+        <TenantLayout>
             <Head title={`${tenantId.toUpperCase()} Workspace`} />
 
-            {/* Top Navigation Bar */}
-            <nav className="bg-slate-900/50 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
-                        <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold uppercase">
-                                {tenantId.charAt(0)}
-                            </div>
-                            <span className="font-bold tracking-wider uppercase text-slate-200">
-                                {tenantId} OS
-                            </span>
-                        </div>
-
-                        {/* Profile Dropdown */}
-                        <div className="flex items-center relative">
-                            <button
-                                onClick={() =>
-                                    setShowingDropdown(!showingDropdown)
-                                }
-                                className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition-colors focus:outline-none px-3 py-2 rounded-lg hover:bg-slate-800"
-                            >
-                                <span>{auth?.user?.name || "Employee"}</span>
-                                <svg
-                                    className={`h-4 w-4 transition-transform duration-200 ${showingDropdown ? "rotate-180" : ""}`}
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M19 9l-7 7-7-7"
-                                    />
-                                </svg>
-                            </button>
-
-                            {/* Dropdown Menu */}
-                            {showingDropdown && (
-                                <div className="absolute right-0 top-12 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-xl shadow-xl py-1 z-50 overflow-hidden">
-                                    <div className="px-4 py-3 border-b border-slate-700/50">
-                                        <p className="text-sm font-medium text-white">
-                                            {auth?.user?.name}
-                                        </p>
-                                        <p className="text-xs text-slate-400 truncate">
-                                            {auth?.user?.email}
-                                        </p>
-                                    </div>
-
-                                    <div className="py-1">
-                                        {/* Profile Link (You can map this to a real profile route later) */}
-                                        <Link
-                                            href="#"
-                                            className="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
-                                        >
-                                            Profile Settings
-                                        </Link>
-
-                                        {/* Logout Button */}
-                                        <Link
-                                            href="/logout"
-                                            method="post"
-                                            as="button"
-                                            className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-700 hover:text-red-300 transition-colors"
-                                        >
-                                            Log Out
-                                        </Link>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            {/* Main Content */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 {/* Header Section */}
-                <div className="flex items-center justify-between border-b border-slate-800 pb-6 mb-10">
+                <div className="flex items-center justify-between border-b border-base-300 pb-6 mb-10">
                     <div>
-                        <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400 uppercase">
-                            {tenantId} Workspace
+                        <h1 className="text-4xl font-extrabold tracking-tight uppercase">
+                            {tenantId} Dashboard
                         </h1>
-                        <p className="mt-2 text-slate-400">
+                        <p className="mt-2 opacity-70">
                             AI-Powered Organization Intelligence
                         </p>
                     </div>
-                    <div className="flex items-center gap-4 hidden sm:flex">
+
+                    <div className="hidden sm:flex items-center gap-4">
                         <span className="relative flex h-3 w-3">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
                         </span>
-                        <span className="text-sm font-medium text-cyan-400">
+                        <span className="text-sm font-medium text-success">
                             System Online
                         </span>
+
+                        <Link href={route("settings.layout")} className="btn btn-sm btn-outline btn-primary ml-4">
+                            Edit Layout
+                        </Link>
                     </div>
                 </div>
 
                 {/* Dashboard Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Placeholder for Phase 2: RAG Upload */}
-                    <div className="col-span-1 md:col-span-2 bg-slate-800/50 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm hover:border-indigo-500/50 transition-colors group">
-                        <h2 className="text-xl font-semibold mb-4 text-indigo-300">
-                            Knowledge Base RAG
-                        </h2>
-                        <div className="border-2 border-dashed border-slate-600 rounded-xl h-48 flex items-center justify-center text-slate-500 group-hover:text-slate-300 group-hover:border-slate-400 transition-all cursor-pointer bg-slate-900/20">
-                            <p>+ Drag & Drop Organization Documents</p>
+                    {/* Knowledge Base RAG Upload */}
+                    <div className="col-span-1 md:col-span-2 bg-base-100 border border-base-300 rounded-3xl p-8 shadow-sm">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                                <h2 className="text-xl font-bold">Knowledge Base RAG</h2>
+                            </div>
+
+                            {data.document && !processing && (
+                                <button
+                                    onClick={submitDocument}
+                                    className="btn btn-primary btn-sm rounded-xl"
+                                >
+                                    Upload & Ingest Vector
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Status Feedback */}
+                        {wasSuccessful && (
+                            <div className="alert alert-success mb-4 rounded-xl text-sm py-2">
+                                <span>Document embedded and synchronized with Pinecone!</span>
+                            </div>
+                        )}
+
+                        {errors.document && (
+                            <div className="alert alert-error mb-4 rounded-xl text-sm py-2">
+                                <span>{errors.document}</span>
+                            </div>
+                        )}
+
+                        {errors.error && (
+                            <div className="alert alert-error mb-4 rounded-xl text-sm py-2">
+                                <span>{errors.error}</span>
+                            </div>
+                        )}
+
+                        {/* Interactive Drag & Drop Area */}
+                        <div
+                            onDragEnter={handleDrag}
+                            onDragLeave={handleDrag}
+                            onDragOver={handleDrag}
+                            onDrop={handleDrop}
+                            onClick={() => fileInputRef.current?.click()}
+                            className={`border-2 border-dashed rounded-2xl h-56 flex flex-col items-center justify-center transition-all cursor-pointer ${
+                                dragActive
+                                    ? "border-primary bg-primary/10 text-primary"
+                                    : "border-base-300 bg-base-200/50 text-base-content/60 hover:text-primary hover:border-primary/50 hover:bg-primary/5"
+                            }`}
+                        >
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".pdf"
+                                className="hidden"
+                                onChange={(e) => handleFileSelect(e.target.files?.[0])}
+                            />
+
+                            {processing ? (
+                                <div className="flex flex-col items-center gap-3">
+                                    <span className="loading loading-spinner loading-lg text-primary"></span>
+                                    <p className="text-sm font-medium">Extracting text & generating Gemini vectors...</p>
+                                    {progress && (
+                                        <progress
+                                            className="progress progress-primary w-56"
+                                            value={progress.percentage}
+                                            max="100"
+                                        ></progress>
+                                    )}
+                                </div>
+                            ) : data.document ? (
+                                <div className="flex flex-col items-center text-center px-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-success mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <p className="font-semibold text-base-content">{data.document.name}</p>
+                                    <p className="text-xs opacity-60 mt-1">
+                                        {(data.document.size / (1024 * 1024)).toFixed(2)} MB - Click "Upload & Ingest Vector" above
+                                    </p>
+                                </div>
+                            ) : (
+                                <>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                    </svg>
+                                    <p className="font-medium">Drag & Drop Organization Documents</p>
+                                    <p className="text-sm mt-1 opacity-70">PDF up to 10MB</p>
+                                </>
+                            )}
                         </div>
                     </div>
 
-                    {/* Placeholder for AI Chat */}
-                    <div className="col-span-1 bg-slate-800/50 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm flex flex-col">
-                        <h2 className="text-xl font-semibold mb-4 text-cyan-300">
-                            AI Assistant
-                        </h2>
-                        <div className="flex-1 bg-slate-900/50 rounded-xl p-4 text-sm text-slate-400 italic mb-4 border border-slate-700/50">
-                            Ready to analyze documents for {tenantId}...
+                    {/* AI Chat Interface */}
+                    <div className="col-span-1 bg-base-100 border border-base-300 rounded-3xl p-6 shadow-sm flex flex-col h-[340px]">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="avatar placeholder">
+                                <div className="bg-secondary text-secondary-content rounded-full w-8">
+                                    <span className="text-xs">AI</span>
+                                </div>
+                            </div>
+                            <h2 className="text-xl font-bold text-secondary">AI Assistant</h2>
                         </div>
-                        <input
-                            type="text"
-                            placeholder="Ask the automation engine..."
-                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all shadow-inner"
-                        />
+
+                        <div className="flex-1 bg-base-200 rounded-2xl p-4 text-sm opacity-70 italic mb-4 border border-base-300 flex items-end">
+                            <p>Ready to analyze documents for {tenantId}...</p>
+                        </div>
+
+                        <div className="relative w-full">
+                            <input
+                                type="text"
+                                placeholder="Ask the engine..."
+                                className="input input-bordered input-secondary w-full pr-12 bg-base-100"
+                            />
+                            <button className="btn btn-sm btn-circle btn-secondary absolute right-2 top-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </TenantLayout>
     );
 }
