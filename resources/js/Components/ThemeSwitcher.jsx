@@ -40,7 +40,6 @@ export default function ThemeSwitcher() {
         localStorage.getItem("theme") || "dark",
     );
 
-    // Whenever the theme changes, update the HTML tag and save to localStorage
     useEffect(() => {
         document.documentElement.setAttribute("data-theme", currentTheme);
         localStorage.setItem("theme", currentTheme);
